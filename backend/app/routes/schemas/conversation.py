@@ -6,6 +6,7 @@ from pydantic import Field, root_validator, validator
 type_model_name = Literal[
     "claude-instant-v1",
     "claude-v2",
+    "claude-v3-5-sonnet",
     "claude-v3-sonnet",
     "claude-v3-haiku",
     "claude-v3-opus",
