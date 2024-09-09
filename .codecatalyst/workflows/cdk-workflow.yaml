@@ -1,0 +1,103 @@
+Name: cdk-workflow
+SchemaVersion: "1.0"
+Triggers:
+  - Type: PUSH
+    Branches:
+      - main
+Actions:
+  ValidateModelAccess:
+    Identifier: aws/build@v1
+    Configuration:
+      Steps:
+        - Run: region=us-west-2
+        - Run: MODEL_ACCESS=$(aws bedrock-runtime invoke-model --region $region --model-id "anthropic.claude-3-sonnet-20240229-v1:0" --body eyJkdW1teSI6InBhcmFtIn0= /dev/null 2>&1 || true)
+        - Run: if [[ $MODEL_ACCESS == *"AccessDeniedException"* ]]; then echo "Access denied for model anthropic.claude-3-sonnet-20240229-v1:0"; exit 1; else echo "Access validated for model anthropic.claude-3-sonnet-20240229-v1:0"; fi
+        - Run: MODEL_ACCESS=$(aws bedrock-runtime invoke-model --region $region --model-id "anthropic.claude-3-haiku-20240307-v1:0" --body eyJkdW1teSI6InBhcmFtIn0= /dev/null 2>&1 || true)
+        - Run: if [[ $MODEL_ACCESS == *"AccessDeniedException"* ]]; then echo "Access denied for model anthropic.claude-3-haiku-20240307-v1:0"; exit 1; else echo "Access validated for model anthropic.claude-3-haiku-20240307-v1:0"; fi
+        - Run: MODEL_ACCESS=$(aws bedrock-runtime invoke-model --region $region --model-id "cohere.embed-multilingual-v3" --body eyJkdW1teSI6InBhcmFtIn0= /dev/null 2>&1 || true)
+        - Run: if [[ $MODEL_ACCESS == *"AccessDeniedException"* ]]; then echo "Access denied for model cohere.embed-multilingual-v3"; exit 1; else echo "Access validated for model cohere.embed-multilingual-v3"; fi
+    Environment:
+      Name: DEFAULT_ENVIRONMENT_NAME
+      Connections:
+        - Name: "693858346231"
+          Role: CodeCatalystWorkflowDevelopmentRole-peterwt
+  bootstrap_us_west_2:
+    Identifier: aws/cdk-bootstrap@v1
+    Inputs:
+      Sources:
+        - WorkflowSource
+    Environment:
+      Name: DEFAULT_ENVIRONMENT_NAME
+      Connections:
+        - Name: "693858346231"
+          Role: CodeCatalystWorkflowDevelopmentRole-peterwt
+    DependsOn:
+      - ValidateModelAccess
+    Compute:
+      Type: EC2
+    Configuration:
+      Region: us-west-2
+      CdkCliVersion: 2.155.0
+  bootstrap_us_east_1:
+    Identifier: aws/cdk-bootstrap@v1
+    Inputs:
+      Sources:
+        - WorkflowSource
+    Environment:
+      Name: DEFAULT_ENVIRONMENT_NAME
+      Connections:
+        - Name: "693858346231"
+          Role: CodeCatalystWorkflowDevelopmentRole-peterwt
+    DependsOn:
+      - ValidateModelAccess
+    Compute:
+      Type: EC2
+    Configuration:
+      Region: us-east-1
+      CdkCliVersion: 2.155.0
+  BuildFrontend:
+    Identifier: aws/build@v1
+    Inputs:
+      Sources:
+        - WorkflowSource
+      Artifacts: []
+    Outputs:
+      AutoDiscoverReports:
+        Enabled: false
+      Artifacts:
+        - Name: frontend
+          Files:
+            - "**/*"
+    Configuration:
+      Steps:
+        - Run: dnf install -y nodejs
+        - Run: cd frontend
+        - Run: npm i
+      Container:
+        Registry: CODECATALYST
+        Image: CodeCatalystLinux_x86_64:2024_03
+    DependsOn:
+      - ValidateModelAccess
+  CDKDeployAction:
+    Identifier: aws/cdk-deploy@v1
+    Inputs:
+      Sources: []
+      Artifacts:
+        - frontend
+    Environment:
+      Name: DEFAULT_ENVIRONMENT_NAME
+      Connections:
+        - Name: "693858346231"
+          Role: CodeCatalystWorkflowDevelopmentRole-peterwt
+    DependsOn:
+      - bootstrap_us_west_2
+      - bootstrap_us_east_1
+      - BuildFrontend
+    Compute:
+      Type: EC2
+    Configuration:
+      StackName: BedrockChatBotStack-xe6vsnzk
+      Region: us-west-2
+      CdkRootPath: cdk
+      CfnOutputVariables: '["FrontendURL"]'
+      CdkCliVersion: 2.155.0
