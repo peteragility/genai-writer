@@ -26,6 +26,12 @@ from llama_index.core.node_parser import SentenceSplitter
 from retry import retry
 from ulid import ULID
 
+import nltk
+
+# Download required NLTK resources
+nltk.download('averaged_perceptron_tagger')
+nltk.download('punkt')
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
