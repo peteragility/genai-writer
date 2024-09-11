@@ -138,31 +138,11 @@ def embed(
 
     documents = loader.load()
     splitted = splitter.split_documents(documents)
-    
-    for chunk in splitted:
-        remaining_content = chunk.page_content
-        while len(remaining_content) > 0:
-            if len(remaining_content) > chunk_size:
-                # Find the last space within the chunk_size character limit
-                split_index = remaining_content[:chunk_size].rfind(' ')
-                if split_index == -1:  # No space found, force split at 2048
-                    split_index = chunk_size
-                sub_chunk = remaining_content[:split_index]
-                remaining_content = remaining_content[split_index:].lstrip()
-            else:
-                sub_chunk = remaining_content
-                remaining_content = ""
-            
-            try:
-                embedding = embedder.embed_documents([sub_chunk])[0]
-                contents.append(sub_chunk)
-                sources.append(chunk.metadata["source"])
-                embeddings.append(embedding)
-            except Exception as e:
-                logger.error(f"Error embedding chunk: {e}")
-                # Handle the error appropriately (e.g., skip this chunk, retry, etc.)
+    splitted_embeddings = embedder.embed_documents(splitted)
 
-    logger.info(f"Processed {len(contents)} chunks")
+    contents.extend([t.page_content for t in splitted])
+    sources.extend([t.metadata["source"] for t in splitted])
+    embeddings.extend(splitted_embeddings)
 
 
 def main(

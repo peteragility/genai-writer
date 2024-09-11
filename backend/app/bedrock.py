@@ -199,7 +199,10 @@ def calculate_query_embedding(question: str) -> list[float]:
     # Currently only supports "cohere.embed-multilingual-v3"
     assert model_id == "cohere.embed-multilingual-v3"
 
-    payload = json.dumps({"texts": [question], "input_type": "search_query"})
+    # Truncate the question to 1024 characters
+    truncated_question = question[:1024]
+
+    payload = json.dumps({"texts": [truncated_question], "input_type": "search_query"})
     accept = "application/json"
     content_type = "application/json"
 
