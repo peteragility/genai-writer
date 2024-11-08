@@ -9,18 +9,18 @@ const availableModels: {
   supportMediaType: string[];
 }[] = !MISTRAL_ENABLED ? [
   {
-    modelId: 'claude-v3-haiku',
-    label: 'Claude 3 (Haiku)',
-    supportMediaType: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  },
-  {
-    modelId: 'claude-v3-sonnet',
-    label: 'Claude 3 (Sonnet)',
-    supportMediaType: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  },
-  {
     modelId: 'claude-v3-5-sonnet',
     label: 'Claude 3.5 (Sonnet)',
+    supportMediaType: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  },
+  {
+    modelId: 'claude-v3-5-sonnet-v2',
+    label: 'Claude 3.5 (Sonnet v2)',
+    supportMediaType: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  },
+  {
+    modelId: 'claude-v3-5-haiku',
+    label: 'Claude 3.5 (Haiku)',
     supportMediaType: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   },
 ] : [
