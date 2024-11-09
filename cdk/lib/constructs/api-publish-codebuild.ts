@@ -76,7 +76,7 @@ export class ApiPublishCodebuild extends Construct {
             "runtime-versions": {
               nodejs: "18",
             },
-            commands: ["npm install -g aws-cdk"],
+            commands: ["npm install -g aws-cdk@2.132.0"],
             "on-failure": "ABORT",
           },
           build: {
